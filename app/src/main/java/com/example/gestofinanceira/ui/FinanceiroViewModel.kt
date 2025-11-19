@@ -64,9 +64,33 @@ class FinanceiroViewModel(private val repository: FinanceiroRepository) : ViewMo
         }
     }
 
+    fun updateEntrada(entrada: Entrada) {
+        viewModelScope.launch {
+            repository.updateEntrada(entrada)
+        }
+    }
+
+    fun deleteEntrada(entrada: Entrada) {
+        viewModelScope.launch {
+            repository.deleteEntrada(entrada)
+        }
+    }
+
     fun adicionarSaida(valor: Double, descricao: String) {
         viewModelScope.launch {
             repository.inserirSaida(Saida(valor = valor, descricao = descricao))
+        }
+    }
+
+    fun updateSaida(saida: Saida) {
+        viewModelScope.launch {
+            repository.updateSaida(saida)
+        }
+    }
+
+    fun deleteSaida(saida: Saida) {
+        viewModelScope.launch {
+            repository.deleteSaida(saida)
         }
     }
 }

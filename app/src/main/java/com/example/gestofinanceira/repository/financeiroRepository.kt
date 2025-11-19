@@ -21,8 +21,24 @@ class FinanceiroRepository(
         transacaoDao.inserirEntrada(entrada)
     }
 
+    suspend fun updateEntrada(entrada: Entrada) {
+        transacaoDao.updateEntrada(entrada)
+    }
+
+    suspend fun deleteEntrada(entrada: Entrada) {
+        transacaoDao.deleteEntrada(entrada)
+    }
+
     suspend fun inserirSaida(saida: Saida) {
         transacaoDao.inserirSaida(saida)
+    }
+
+    suspend fun updateSaida(saida: Saida) {
+        transacaoDao.updateSaida(saida)
+    }
+
+    suspend fun deleteSaida(saida: Saida) {
+        transacaoDao.deleteSaida(saida)
     }
 
     // --- Método da API Externa ---

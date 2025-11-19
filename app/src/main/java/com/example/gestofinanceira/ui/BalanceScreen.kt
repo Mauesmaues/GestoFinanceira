@@ -1,13 +1,13 @@
 package com.example.gestofinanceira.ui
 
 import android.content.Intent
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,21 +26,22 @@ import java.util.Locale
 
 @Composable
 fun BalanceScreen(viewModel: FinanceiroViewModel) {
-    // Observar estados do ViewModel
     val saldoTotal by viewModel.saldoTotal.collectAsState()
     val saldoEmDolar by viewModel.saldoEmDolar.collectAsState()
     val todasEntradas by viewModel.todasEntradas.collectAsState(initial = emptyList())
     val todasSaidas by viewModel.todasSaidas.collectAsState(initial = emptyList())
     val cotacaoDolar by viewModel.cotacaoDolar.collectAsState()
 
-    // Inputs como texto para facilitar edição
     var entradaText by remember { mutableStateOf(TextFieldValue("")) }
     var saidaText by remember { mutableStateOf(TextFieldValue("")) }
-
     var tabelaExibida by remember { mutableStateOf("receita") }
     val context = LocalContext.current
 
-    // Buscar cotação do dólar ao iniciar
+    var showEditDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var selectedEntrada by remember { mutableStateOf<Entrada?>(null) }
+    var selectedSaida by remember { mutableStateOf<Saida?>(null) }
+
     LaunchedEffect(Unit) {
         viewModel.atualizarCotacaoDolar()
     }
@@ -49,214 +50,61 @@ fun BalanceScreen(viewModel: FinanceiroViewModel) {
     val formatoUS = NumberFormat.getCurrencyInstance(Locale.US)
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
+        modifier = Modifier.fillMaxSize().padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // DIV 1: Linha com dois cards mostrando saldo e saldo convertido em dólar
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Card(
-                modifier = Modifier
-                    .weight(1f),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "Saldo Atual",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = formatoBR.format(saldoTotal),
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
-            }
-
-            Card(
-                modifier = Modifier
-                    .weight(1f),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "Saldo em USD",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = formatoUS.format(saldoEmDolar),
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer
-                    )
-                }
-            }
+            SaldoCard("Saldo Atual", formatoBR.format(saldoTotal), MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer)
+            SaldoCard("Saldo em USD", formatoUS.format(saldoEmDolar), MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.onSecondaryContainer)
         }
 
-        // DIV 2: Card com inputs formatados R$ e botões Entrada/Saída
         Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                // Linha 1: Input Entrada + Botão Entrada
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    OutlinedTextField(
-                        value = entradaText,
-                        onValueChange = { entradaText = it },
-                        label = { Text("Valor Entrada (R$)") },
-                        placeholder = { Text("0,00") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        modifier = Modifier.weight(1f),
-                        singleLine = true
-                    )
-
-                    Button(
-                        onClick = {
-                            val valor = parseCurrencyToDouble(entradaText.text)
-                            if (valor > 0) {
-                                viewModel.adicionarEntrada(
-                                    valor = valor,
-                                    descricao = "Entrada de ${formatoBR.format(valor)}"
-                                )
-                                entradaText = TextFieldValue("")
-                            }
-                        },
-                        modifier = Modifier.height(56.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        )
-                    ) {
-                        Text("Entrada")
+            Column(modifier = Modifier.padding(16.dp)) {
+                TransactionInputRow(
+                    textValue = entradaText,
+                    onValueChange = { entradaText = it },
+                    label = "Valor Entrada (R$)",
+                    buttonText = "Entrada",
+                    onButtonClick = {
+                        val valor = parseCurrencyToDouble(entradaText.text)
+                        if (valor > 0) {
+                            viewModel.adicionarEntrada(valor, "Entrada de ${'$'}{formatoBR.format(valor)}")
+                            entradaText = TextFieldValue("")
+                        }
                     }
-                }
-
+                )
                 Spacer(modifier = Modifier.height(12.dp))
-
-                // Linha 2: Input Saída + Botão Saída
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    OutlinedTextField(
-                        value = saidaText,
-                        onValueChange = { saidaText = it },
-                        label = { Text("Valor Saída (R$)") },
-                        placeholder = { Text("0,00") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        modifier = Modifier.weight(1f),
-                        singleLine = true
-                    )
-
-                    Button(
-                        onClick = {
-                            val valor = parseCurrencyToDouble(saidaText.text)
-                            if (valor > 0) {
-                                viewModel.adicionarSaida(
-                                    valor = valor,
-                                    descricao = "Saída de ${formatoBR.format(valor)}"
-                                )
-                                saidaText = TextFieldValue("")
-                            }
-                        },
-                        modifier = Modifier.height(56.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.error
-                        )
-                    ) {
-                        Text("Saída")
-                    }
-                }
+                TransactionInputRow(
+                    textValue = saidaText,
+                    onValueChange = { saidaText = it },
+                    label = "Valor Saída (R$)",
+                    buttonText = "Saída",
+                    onButtonClick = {
+                        val valor = parseCurrencyToDouble(saidaText.text)
+                        if (valor > 0) {
+                            viewModel.adicionarSaida(valor, "Saída de ${'$'}{formatoBR.format(valor)}")
+                            saidaText = TextFieldValue("")
+                        }
+                    },
+                    buttonColors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                )
             }
         }
 
-        // DIV 3: Botões para alternar entre Receita e Despesa
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Button(
-                onClick = { tabelaExibida = "receita" },
-                modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (tabelaExibida == "receita")
-                        MaterialTheme.colorScheme.primary
-                    else
-                        MaterialTheme.colorScheme.surfaceVariant
-                )
-            ) {
-                Text(
-                    text = "Receitas",
-                    color = if (tabelaExibida == "receita")
-                        MaterialTheme.colorScheme.onPrimary
-                    else
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            Button(
-                onClick = { tabelaExibida = "despesa" },
-                modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (tabelaExibida == "despesa")
-                        MaterialTheme.colorScheme.primary
-                    else
-                        MaterialTheme.colorScheme.surfaceVariant
-                )
-            ) {
-                Text(
-                    text = "Despesas",
-                    color = if (tabelaExibida == "despesa")
-                        MaterialTheme.colorScheme.onPrimary
-                    else
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            FilterButton("Receitas", tabelaExibida == "receita") { tabelaExibida = "receita" }
+            FilterButton("Despesas", tabelaExibida == "despesa") { tabelaExibida = "despesa" }
         }
 
-        // Botão para compartilhar o saldo
         Button(
             onClick = {
                 val saldoBRL = formatoBR.format(saldoTotal)
@@ -278,61 +126,212 @@ fun BalanceScreen(viewModel: FinanceiroViewModel) {
                 val chooser = Intent.createChooser(intent, "Compartilhar Saldo")
                 context.startActivity(chooser)
             },
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.secondary
-            )
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
         ) {
-            Text("Compartilhar Saldo", color = MaterialTheme.colorScheme.onSecondary)
+            Text("Compartilhar Saldo")
         }
 
-        // DIV 4: Tabela com LazyColumn para exibir itens
         Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
+            modifier = Modifier.fillMaxWidth().weight(1f),
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
+            LazyColumn(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(
-                    text = if (tabelaExibida == "receita") "Lista de Receitas" else "Lista de Despesas",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 12.dp)
-                )
-
-                val listaAtual = if (tabelaExibida == "receita") todasEntradas else todasSaidas
-
-                if (listaAtual.isEmpty()) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "Nenhum item registrado",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            style = MaterialTheme.typography.bodyLarge
+                item {
+                    Text(
+                        text = if (tabelaExibida == "receita") "Lista de Receitas" else "Lista de Despesas",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    )
+                }
+                if (tabelaExibida == "receita") {
+                    items(todasEntradas) { entrada ->
+                        EntradaCard(
+                            entrada = entrada,
+                            formatoBR = formatoBR,
+                            onEdit = {
+                                selectedEntrada = it
+                                showEditDialog = true
+                            },
+                            onDelete = {
+                                selectedEntrada = it
+                                showDeleteDialog = true
+                            }
                         )
                     }
                 } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        if (tabelaExibida == "receita") {
-                            items(todasEntradas) { entrada ->
-                                EntradaCard(entrada = entrada, formatoBR = formatoBR)
+                    items(todasSaidas) { saida ->
+                        SaidaCard(
+                            saida = saida,
+                            formatoBR = formatoBR,
+                            onEdit = {
+                                selectedSaida = it
+                                showEditDialog = true
+                            },
+                            onDelete = {
+                                selectedSaida = it
+                                showDeleteDialog = true
                             }
-                        } else {
-                            items(todasSaidas) { saida ->
-                                SaidaCard(saida = saida, formatoBR = formatoBR)
-                            }
-                        }
+                        )
                     }
+                }
+            }
+        }
+    }
+
+    if (showEditDialog) {
+        val itemToEdit = selectedEntrada ?: selectedSaida
+        if (itemToEdit != null) {
+            EditTransactionDialog(
+                item = itemToEdit,
+                onDismiss = {
+                    showEditDialog = false
+                    selectedEntrada = null
+                    selectedSaida = null
+                },
+                onSave = {
+                    if (it is Entrada) viewModel.updateEntrada(it)
+                    if (it is Saida) viewModel.updateSaida(it)
+                    showEditDialog = false
+                    selectedEntrada = null
+                    selectedSaida = null
+                }
+            )
+        }
+    }
+
+    if (showDeleteDialog) {
+        DeleteConfirmationDialog(
+            onDismiss = {
+                showDeleteDialog = false
+                selectedEntrada = null
+                selectedSaida = null
+            },
+            onConfirm = {
+                selectedEntrada?.let { viewModel.deleteEntrada(it) }
+                selectedSaida?.let { viewModel.deleteSaida(it) }
+                showDeleteDialog = false
+                selectedEntrada = null
+                selectedSaida = null
+            }
+        )
+    }
+}
+
+@Composable
+fun RowScope.SaldoCard(title: String, amount: String, containerColor: Color, contentColor: Color) {
+    Card(
+        modifier = Modifier.weight(1f),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(text = title, style = MaterialTheme.typography.titleMedium, color = contentColor)
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = amount, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = contentColor)
+        }
+    }
+}
+
+@Composable
+fun TransactionInputRow(
+    textValue: TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit,
+    label: String,
+    buttonText: String,
+    onButtonClick: () -> Unit,
+    buttonColors: ButtonColors = ButtonDefaults.buttonColors()
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        OutlinedTextField(
+            value = textValue,
+            onValueChange = onValueChange,
+            label = { Text(label) },
+            placeholder = { Text("0,00") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            modifier = Modifier.weight(1f),
+            singleLine = true
+        )
+        Button(
+            onClick = onButtonClick,
+            modifier = Modifier.height(56.dp),
+            colors = buttonColors
+        ) {
+            Text(buttonText)
+        }
+    }
+}
+
+@Composable
+fun RowScope.FilterButton(text: String, isSelected: Boolean, onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier.weight(1f),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+            contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    ) {
+        Text(text = text)
+    }
+}
+
+@Composable
+fun EntradaCard(entrada: Entrada, formatoBR: NumberFormat, onEdit: (Entrada) -> Unit, onDelete: (Entrada) -> Unit) {
+    TransactionCard(
+        description = entrada.descricao,
+        value = formatoBR.format(entrada.valor),
+        onEdit = { onEdit(entrada) },
+        onDelete = { onDelete(entrada) },
+        valueColor = MaterialTheme.colorScheme.primary
+    )
+}
+
+@Composable
+fun SaidaCard(saida: Saida, formatoBR: NumberFormat, onEdit: (Saida) -> Unit, onDelete: (Saida) -> Unit) {
+    TransactionCard(
+        description = saida.descricao,
+        value = formatoBR.format(saida.valor),
+        onEdit = { onEdit(saida) },
+        onDelete = { onDelete(saida) },
+        valueColor = MaterialTheme.colorScheme.error
+    )
+}
+
+@Composable
+fun TransactionCard(description: String, value: String, onEdit: () -> Unit, onDelete: () -> Unit, valueColor: Color) {
+    var showMenu by remember { mutableStateOf(false) }
+
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(modifier = Modifier.weight(1f).padding(16.dp)) {
+                Text(description, fontWeight = FontWeight.Medium)
+                Text(value, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = valueColor)
+            }
+            Box {
+                IconButton(onClick = { showMenu = true }) {
+                    Icon(Icons.Default.MoreVert, contentDescription = "Mais opções")
+                }
+                DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
+                    DropdownMenuItem(text = { Text("Editar") }, onClick = {
+                        onEdit()
+                        showMenu = false
+                    })
+                    DropdownMenuItem(text = { Text("Excluir") }, onClick = {
+                        onDelete()
+                        showMenu = false
+                    })
                 }
             }
         }
@@ -340,88 +339,56 @@ fun BalanceScreen(viewModel: FinanceiroViewModel) {
 }
 
 @Composable
-fun EntradaCard(entrada: Entrada, formatoBR: NumberFormat) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = entrada.descricao,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium
-                )
-                Text(
-                    text = "ID: ${entrada.id}",
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+fun EditTransactionDialog(item: Any, onDismiss: () -> Unit, onSave: (Any) -> Unit) {
+    val isEntrada = item is Entrada
+    val initialDescription = if (isEntrada) (item as Entrada).descricao else (item as Saida).descricao
+    val initialAmount = (if (isEntrada) (item as Entrada).valor else (item as Saida).valor).toString()
+
+    var description by remember { mutableStateOf(initialDescription) }
+    var amount by remember { mutableStateOf(initialAmount) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Editar Transação") },
+        text = {
+            Column {
+                OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("Descrição") })
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(value = amount, onValueChange = { amount = it }, label = { Text("Valor") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal))
             }
-            Text(
-                text = formatoBR.format(entrada.valor),
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
-            )
-        }
-    }
+        },
+        confirmButton = {
+            Button(onClick = {
+                val valor = parseCurrencyToDouble(amount)
+                if (valor > 0) {
+                    val updatedItem = if (isEntrada) {
+                        (item as Entrada).copy(descricao = description, valor = valor)
+                    } else {
+                        (item as Saida).copy(descricao = description, valor = valor)
+                    }
+                    onSave(updatedItem)
+                }
+            }) {
+                Text("Salvar")
+            }
+        },
+        dismissButton = { Button(onClick = onDismiss) { Text("Cancelar") } }
+    )
 }
 
 @Composable
-fun SaidaCard(saida: Saida, formatoBR: NumberFormat) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = saida.descricao,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium
-                )
-                Text(
-                    text = "ID: ${saida.id}",
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            Text(
-                text = formatoBR.format(saida.valor),
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.error
-            )
-        }
-    }
+fun DeleteConfirmationDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Confirmar Exclusão") },
+        text = { Text("Você tem certeza que deseja excluir este item?") },
+        confirmButton = { Button(onClick = onConfirm) { Text("Excluir") } },
+        dismissButton = { Button(onClick = onDismiss) { Text("Cancelar") } }
+    )
 }
 
-// Função utilitária simples para transformar entrada textual em Double (R$), aceita vírgula ou ponto
 private fun parseCurrencyToDouble(text: String): Double {
     if (text.isBlank()) return 0.0
-    // Remove tudo que não é dígito, vírgula ou ponto ou menos
-    val cleaned = text.replace("[^0-9,.-]".toRegex(), "")
-        .replace(',', '.')
-    return try {
-        cleaned.toDouble()
-    } catch (e: Exception) {
-        0.0
-    }
+    val cleaned = text.replace("[^0-9,.-]".toRegex(), "").replace(',', '.')
+    return cleaned.toDoubleOrNull() ?: 0.0
 }
