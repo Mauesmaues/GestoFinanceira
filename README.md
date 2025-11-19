@@ -1,1 +1,108 @@
-💰 Gestão Financeira AppKotlin Jetpack Compose MVVMProjeto acadêmico de um aplicativo para gestão financeira simples, desenvolvido para a disciplina de Desenvolvimento de Aplicativos Móveis. O app permite ao usuário registrar suas receitas e despesas, visualizar o saldo total e acompanhar as transações em um só lugar.✨ Funcionalidades•Registro de Transações: Adicione novas receitas (entradas) e despesas (saídas) de forma rápida.•Visualização de Saldo: Acompanhe seu saldo total em tempo real na tela principal.•Cotação de Moeda (Integração com API): Visualize o saldo convertido em Dólar (USD), com a cotação sendo atualizada através de uma API externa.•Listagem de Transações: Navegue por listas separadas de todas as suas receitas e despesas.•CRUD Completo:◦Create: Criar novas transações.◦Read: Ler e exibir as transações.◦Update: Editar o valor de transações existentes.◦Delete: Excluir transações da lista.•Compartilhamento de Dados: Envie um resumo do seu saldo (em Reais e Dólar) para qualquer aplicativo instalado (WhatsApp, Email, etc.) usando a função de compartilhamento nativa do Android.📸 Screenshots(Aqui você pode adicionar screenshots do seu aplicativo)Exemplo:<img src="URL_DA_SUA_IMAGEM_AQUI" width="250">Tela principal exibindo o saldo, os inputs e a lista de transações.🛠️ Tecnologias e ArquiteturaO projeto foi construído seguindo as práticas modernas de desenvolvimento Android recomendadas pelo Google.•Linguagem: Kotlin•Interface de Usuário (UI): Jetpack Compose, o toolkit declarativo moderno do Android para criar interfaces nativas.•Arquitetura: MVVM (Model-View-ViewModel), que separa a lógica de negócio da interface do usuário, tornando o código mais organizado, testável e manutenível.•Gerenciamento de Estado:◦ViewModel: Mantém o estado da UI e sobrevive a mudanças de configuração (como rotação de tela).◦StateFlow: Utilizado para expor os dados do ViewModel à UI de forma reativa e eficiente.•Banco de Dados Local: Room Persistence Library para criar e gerenciar o banco de dados SQLite de forma robusta.◦@Entity: Para modelar as tabelas Entrada e Saida.◦@Dao: Para definir as operações de acesso aos dados (CRUD).◦@TypeConverter: Para ensinar o Room a armazenar tipos de dados customizados, como Date.•Consumo de API: Retrofit para realizar chamadas de rede à API de cotação de moedas (AwesomeAPI) de forma simples e declarativa.•Assincronismo: Kotlin Coroutines para gerenciar operações em segundo plano (banco de dados e rede) sem bloquear a thread principal, garantindo uma UI fluida.Estrutura do ProjetoO código-fonte está organizado nos seguintes pacotes:•data: Contém as entidades do Room (Entrada, Saida), o DAO (TransacaoDao), o AppDatabase e os conversores.•api: Contém a definição da interface do Retrofit (CotacaoApiService), as classes de modelo da resposta JSON e o RetrofitClient.•repository: Contém a classe FinanceiroRepository, que atua como uma fonte única da verdade, centralizando o acesso aos dados (locais e remotos).•ui: Contém os componentes de UI feitos com Jetpack Compose (BalanceScreen.kt) e o FinanceiroViewModel.🚀 Como Executar o Projeto1.Clone este repositório:Shell Scriptgit clone https://github.com/SEU_USUARIO/SEU_REPOSITORIO.git2.Abra o projeto no Android Studio.3.Aguarde o Gradle sincronizar as dependências.4.Execute o aplicativo em um emulador ou dispositivo físico.
+💰 Gestão Financeira App
+Kotlin • Jetpack Compose • MVVM
+
+Aplicativo acadêmico desenvolvido para a disciplina de Desenvolvimento de Aplicativos Móveis, com o objetivo de criar um sistema simples de gestão financeira.
+O app permite registrar entradas e saídas, visualizar o saldo total e acompanhar transações em um único lugar.
+
+✨ Funcionalidades
+
+Registro de Transações: Adicione receitas (entradas) e despesas (saídas) rapidamente.
+
+Visualização de Saldo: Acompanhe o saldo total em tempo real na tela principal.
+
+Cotação de Moeda (API): Exibe o saldo convertido em Dólar (USD), utilizando cotação atual obtida via API externa.
+
+Listagem de Transações: Veja listas separadas de todas as suas receitas e despesas.
+
+CRUD Completo:
+
+Create: Criar novas transações
+
+Read: Ler e exibir transações
+
+Update: Editar valores existentes
+
+Delete: Excluir transações
+
+Compartilhamento de Dados: Envie seu resumo financeiro (BRL e USD) para qualquer app (WhatsApp, Email, etc.) usando o compartilhamento nativo do Android.
+
+📸 Capturas de Tela
+
+(Adicione aqui as imagens do seu aplicativo)
+Exemplo:
+
+Tela principal exibindo saldo, inputs e lista de transações.
+
+🛠️ Tecnologias e Arquitetura
+
+Este projeto segue as práticas modernas recomendadas pelo Google para desenvolvimento Android.
+
+Linguagem
+
+Kotlin
+
+Interface de Usuário
+
+Jetpack Compose – toolkit declarativo moderno para construção de UI nativa.
+
+Arquitetura
+
+MVVM (Model–View–ViewModel)
+Separação clara entre lógica de negócio e interface, garantindo organização, testabilidade e manutenção facilitada.
+
+Gerenciamento de Estado
+
+ViewModel: Mantém o estado da UI entre mudanças de configuração.
+
+StateFlow: Fornece dados reativos da camada ViewModel para a UI.
+
+Banco de Dados Local — Room
+
+@Entity: Modelagem das tabelas Entrada e Saida
+
+@Dao: Definição de operações CRUD
+
+@TypeConverter: Tratamento de tipos personalizados (ex.: Date)
+
+Consumo de API
+
+Retrofit: Realiza chamadas HTTP para obter a cotação USD/BRL da AwesomeAPI.
+
+Gson: Conversão automática de JSON para objetos Kotlin.
+
+Assincronismo
+
+Kotlin Coroutines: Executa operações de banco e rede sem bloquear a thread principal.
+
+📁 Estrutura de Pacotes
+• data/
+   ├─ entities (Entrada, Saida)
+   ├─ dao (TransacaoDao)
+   ├─ AppDatabase
+   └─ Converters
+
+• api/
+   ├─ CotacaoApiService
+   ├─ modelos JSON
+   └─ RetrofitClient
+
+• repository/
+   └─ FinanceiroRepository
+      → Centraliza acesso aos dados locais e remotos
+
+• ui/
+   └─ telas e componentes Jetpack Compose
+      ex: BalanceScreen.kt
+
+▶️ Como Executar o Projeto
+
+Clone este repositório:
+
+git clone https://github.com/SEU_USUARIO/SEU_REPOSITORIO.git
+
+
+Abra o projeto no Android Studio.
+
+Aguarde o Gradle sincronizar as dependências.
+
+Execute o app em um emulador ou dispositivo físico
