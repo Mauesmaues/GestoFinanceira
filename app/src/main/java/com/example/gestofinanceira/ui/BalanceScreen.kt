@@ -74,7 +74,7 @@ fun BalanceScreen(viewModel: FinanceiroViewModel) {
                     onButtonClick = {
                         val valor = parseCurrencyToDouble(entradaText.text)
                         if (valor > 0) {
-                            viewModel.adicionarEntrada(valor, "Entrada de ${'$'}{formatoBR.format(valor)}")
+                            viewModel.adicionarEntrada(valor, "Entrada de ${formatoBR.format(valor)}")
                             entradaText = TextFieldValue("")
                         }
                     }
@@ -88,7 +88,7 @@ fun BalanceScreen(viewModel: FinanceiroViewModel) {
                     onButtonClick = {
                         val valor = parseCurrencyToDouble(saidaText.text)
                         if (valor > 0) {
-                            viewModel.adicionarSaida(valor, "Saída de ${'$'}{formatoBR.format(valor)}")
+                            viewModel.adicionarSaida(valor, "Saída de ${formatoBR.format(valor)}")
                             saidaText = TextFieldValue("")
                         }
                     },
@@ -187,6 +187,7 @@ fun BalanceScreen(viewModel: FinanceiroViewModel) {
         if (itemToEdit != null) {
             EditTransactionDialog(
                 item = itemToEdit,
+                formatoBR = formatoBR,
                 onDismiss = {
                     showEditDialog = false
                     selectedEntrada = null
@@ -339,12 +340,10 @@ fun TransactionCard(description: String, value: String, onEdit: () -> Unit, onDe
 }
 
 @Composable
-fun EditTransactionDialog(item: Any, onDismiss: () -> Unit, onSave: (Any) -> Unit) {
+fun EditTransactionDialog(item: Any, formatoBR: NumberFormat, onDismiss: () -> Unit, onSave: (Any) -> Unit) {
     val isEntrada = item is Entrada
-    val initialDescription = if (isEntrada) (item as Entrada).descricao else (item as Saida).descricao
     val initialAmount = (if (isEntrada) (item as Entrada).valor else (item as Saida).valor).toString()
 
-    var description by remember { mutableStateOf(initialDescription) }
     var amount by remember { mutableStateOf(initialAmount) }
 
     AlertDialog(
@@ -352,8 +351,6 @@ fun EditTransactionDialog(item: Any, onDismiss: () -> Unit, onSave: (Any) -> Uni
         title = { Text("Editar Transação") },
         text = {
             Column {
-                OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("Descrição") })
-                Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(value = amount, onValueChange = { amount = it }, label = { Text("Valor") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal))
             }
         },
@@ -361,10 +358,11 @@ fun EditTransactionDialog(item: Any, onDismiss: () -> Unit, onSave: (Any) -> Uni
             Button(onClick = {
                 val valor = parseCurrencyToDouble(amount)
                 if (valor > 0) {
+                    val newDescription = if (isEntrada) "Entrada de ${formatoBR.format(valor)}" else "Saída de ${formatoBR.format(valor)}"
                     val updatedItem = if (isEntrada) {
-                        (item as Entrada).copy(descricao = description, valor = valor)
+                        (item as Entrada).copy(descricao = newDescription, valor = valor)
                     } else {
-                        (item as Saida).copy(descricao = description, valor = valor)
+                        (item as Saida).copy(descricao = newDescription, valor = valor)
                     }
                     onSave(updatedItem)
                 }
