@@ -1,4 +1,4 @@
-package com.example.gestofinanceira.data.api
+package com.example.gestofinanceira.api
 
 import retrofit2.Response
 import retrofit2.http.GET

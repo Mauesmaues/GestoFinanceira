@@ -9,8 +9,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.gestofinanceira.api.RetrofitClient
 import com.example.gestofinanceira.data.AppDatabase
-import com.example.gestofinanceira.data.FinanceiroRepository
-import com.example.gestofinanceira.ui.FinanceiroScreen
+import com.example.gestofinanceira.repository.FinanceiroRepository
+import com.example.gestofinanceira.ui.BalanceScreen
 import com.example.gestofinanceira.ui.FinanceiroViewModel
 import com.example.gestofinanceira.ui.theme.GestãoFinanceiraTheme
 
@@ -32,7 +32,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             GestãoFinanceiraTheme {
                 // Main screen of the financial management application
-                FinanceiroScreen(viewModel = viewModel)
+                BalanceScreen(viewModel = viewModel)
             }
         }
     }

@@ -1,6 +1,10 @@
-package com.example.gestofinanceira.data
+package com.example.gestofinanceira.repository
 
-import com.example.gestofinanceira.data.api.CotacaoApiService
+import android.util.Log
+import com.example.gestofinanceira.api.CotacaoApiService
+import com.example.gestofinanceira.data.Entrada
+import com.example.gestofinanceira.data.Saida
+import com.example.gestofinanceira.data.TransacaoDao
 import kotlinx.coroutines.flow.Flow
 
 class FinanceiroRepository(
@@ -32,6 +36,7 @@ class FinanceiroRepository(
                 null // A chamada falhou
             }
         } catch (e: Exception) {
+            Log.e("FinanceiroRepository", "Erro ao buscar cotação do dólar", e)
             // A chamada gerou uma exceção (ex: sem internet)
             null
         }

@@ -9,7 +9,7 @@ import com.example.gestofinanceira.data.Entrada
 import com.example.gestofinanceira.data.Saida
 
 @Database(entities = [Entrada::class, Saida::class], version = 1, exportSchema = false)
-@TypeConverters(androidx.databinding.adapters.Converters::class) // Necessário para converter o tipo Date
+@TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun transacaoDao(): TransacaoDao
@@ -31,4 +31,3 @@ abstract class AppDatabase : RoomDatabase() {
         }
     }
 }
-    

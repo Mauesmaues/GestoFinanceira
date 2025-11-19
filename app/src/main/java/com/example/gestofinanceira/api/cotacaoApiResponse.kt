@@ -1,4 +1,4 @@
-package com.example.gestofinanceira.data.api
+package com.example.gestofinanceira.api
 
 import com.google.gson.annotations.SerializedName
 

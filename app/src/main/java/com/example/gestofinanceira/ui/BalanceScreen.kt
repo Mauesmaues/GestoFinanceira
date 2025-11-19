@@ -1,5 +1,6 @@
 package com.example.gestofinanceira.ui
 
+import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -12,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
@@ -36,6 +38,7 @@ fun BalanceScreen(viewModel: FinanceiroViewModel) {
     var saidaText by remember { mutableStateOf(TextFieldValue("")) }
 
     var tabelaExibida by remember { mutableStateOf("receita") }
+    val context = LocalContext.current
 
     // Buscar cotação do dólar ao iniciar
     LaunchedEffect(Unit) {
@@ -251,6 +254,36 @@ fun BalanceScreen(viewModel: FinanceiroViewModel) {
                         MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+        }
+
+        // Botão para compartilhar o saldo
+        Button(
+            onClick = {
+                val saldoBRL = formatoBR.format(saldoTotal)
+                val saldoUSD = formatoUS.format(saldoEmDolar)
+                val cotacao = cotacaoDolar?.let { "Cotação do Dólar: R$ %.2f".format(it) } ?: "Cotação não disponível"
+
+                val mensagem = """
+                *Resumo Financeiro*
+
+                *Saldo Atual:* $saldoBRL
+                *Saldo em Dólar:* $saldoUSD
+                _($cotacao)_
+                """.trimIndent()
+
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, mensagem)
+                }
+                val chooser = Intent.createChooser(intent, "Compartilhar Saldo")
+                context.startActivity(chooser)
+            },
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.secondary
+            )
+        ) {
+            Text("Compartilhar Saldo", color = MaterialTheme.colorScheme.onSecondary)
         }
 
         // DIV 4: Tabela com LazyColumn para exibir itens
